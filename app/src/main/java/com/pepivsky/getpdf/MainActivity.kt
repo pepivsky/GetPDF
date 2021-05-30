@@ -13,6 +13,7 @@ import android.provider.MediaStore
 import android.util.Log
 import android.widget.Button
 import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 
@@ -80,13 +81,29 @@ class MainActivity : AppCompatActivity() {
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         if (requestCode == 10 && resultCode == RESULT_OK) {
-            val uri = data?.data
+           /* val uri = data?.data
             val path = uri?.path
             val fileName = path?.substring(path.lastIndexOf("/") + 1)
-            Log.d("MainActivity", "onActivityResult ")
+            Log.d("MainActivity", "onActivityResult ")*/
 
-            if (uri != null) {
-                Log.d(TAG, "uri: $uri ")
+            if (data != null) {
+                if (null !=data.clipData) { //multiples archivos
+                    Log.d(TAG, "multiples archivos")
+                    val lista = data.clipData
+                    for (i in 0 until lista!!.itemCount) {
+                        val uri = data.clipData!!.getItemAt(i).uri
+
+                        val path = uri?.path
+                        val fileName = path?.substring(path.lastIndexOf("/") + 1)
+                        Log.d(TAG, "i: $fileName")
+                    }
+                } else { // un solo archivo
+                    Log.d(TAG, "un solo archivo")
+                    val uri = data.data
+                    Log.d(TAG, "uri $uri")
+                }
+
+               /* Log.d(TAG, "uri: $uri ")
                 Log.d(TAG, "path: $path ")
                 Log.d(TAG, "fileName: $fileName ")
 
@@ -94,64 +111,26 @@ class MainActivity : AppCompatActivity() {
 
                 val realPath = uri.getFilePath(applicationContext)
 
-                //obtenendo el path real nueva clase
-                //val truePath = FileUriUtils.getRealPath(applicationContext, uri)
-
                 Log.d(TAG, "realPath: $realPath ")
                 //Log.d("MainActivity", "nuevo real path: $truePath ")
 
-                val extension = ".pdf"
 
-                val file: File = File(realPath) // error
+                try {
+                    val file: File = File(realPath) // error
 
-                //val newFile = FileInputStream(file)
+                    //val newFile = FileInputStream(file)
 
-                Log.d(TAG, "file creado: $file ")
-                //Log.d("MainActivity", "new file creado: $newFile ")
+                    Log.d(TAG, "file creado: $file ")
+                    //Log.d("MainActivity", "new file creado: $newFile ")
 
-                val myDocument = PDDocument.load(file)
-                val numPages = myDocument.numberOfPages
-                Log.d(TAG, "pages: $numPages ")
+                    val myDocument = PDDocument.load(file)
+                    val numPages = myDocument.numberOfPages
+                    Log.d(TAG, "pages: $numPages ")
 
-                Toast.makeText(this, "Este documento $fileName tiene $numPages paginas", Toast.LENGTH_SHORT).show()
-                /* val file: File = File(path) // error
-
-                 val myDocument = PDDocument.load(file)
-                 val numPages = myDocument.numberOfPages*/
-
-                /*val file: File = File(uri.path)
-                println(file)
-                val myDocument = PDDocument.load(file)
-                val numPages = myDocument.numberOfPages*/
-
-                //Log.d("MainActivity", "pages: $numPages ")
-                /* try {
-                     val file: File = File(uri.path)
-                     println(file)
-                     val myDocument = PDDocument.load(file)
-                     val numPages = myDocument.numberOfPages
-                     Log.d("MainActivity", "pages: $numPages ")
-                 } catch (e: Exception) {
-                     println("No se pudo convertir ${e.message}")
-                 }*/
-
-
-
-
-                //get number of pages
-                // val myDocument = PDDocument.load(file)
-                //val numPages = myDocument.numberOfPages
-                //Log.d("MainActivity", "pages: $numPages ")
-
-                /*try {
-                    val file: File = uri.toFile()
-                    Log.d("MainActivity", "pages: ${file.toString()} ");
+                    Toast.makeText(this, "Este documento $fileName tiene $numPages paginas", Toast.LENGTH_SHORT).show()
                 } catch (e: Exception) {
-                    println(e.message)
+                    println("No se pudo convertir ${e.message}")
                 }*/
-
-
-
 
 
             }
@@ -185,7 +164,7 @@ class MainActivity : AppCompatActivity() {
         intent.type = "application/pdf"
         intent.action = Intent.ACTION_OPEN_DOCUMENT
         // intent.action = Intent.ACTION_GET_CONTENT
-        //intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true)
+        intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true)
         //startActivityForResult(Intent.createChooser(intent, "Select Picture"), 10)
         //val pdfDocument = PDFBoxResourceLoader
         try {
@@ -193,6 +172,7 @@ class MainActivity : AppCompatActivity() {
                     Intent.createChooser(intent, "Select Your .pdf File"),
                     10
             )
+
         } catch (e: ActivityNotFoundException) {
             Toast.makeText(
                     this@MainActivity,
