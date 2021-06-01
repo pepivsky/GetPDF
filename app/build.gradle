@@ -45,4 +45,10 @@ dependencies {
 
     // pdf
     implementation 'com.tom_roush:pdfbox-android:1.8.10.3'
+
+     // handle path
+
+    implementation 'com.github.onimur:handle-path-oz:1.0.7'
+
+
 }

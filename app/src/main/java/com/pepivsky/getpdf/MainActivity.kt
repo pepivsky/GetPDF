@@ -19,6 +19,10 @@ import androidx.core.app.ActivityCompat
 import androidx.core.app.ActivityCompat.startActivityForResult
 import androidx.core.content.ContextCompat
 import androidx.core.net.toFile
+import br.com.onimur.handlepathoz.HandlePathOz
+import br.com.onimur.handlepathoz.HandlePathOzListener
+import br.com.onimur.handlepathoz.model.PathOz
+import br.com.onimur.handlepathoz.utils.extension.getListUri
 import com.tom_roush.pdfbox.pdmodel.PDDocument
 import com.tom_roush.pdfbox.util.PDFBoxResourceLoader
 import java.io.File
@@ -26,12 +30,13 @@ import java.io.FileInputStream
 import java.lang.Exception
 
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : AppCompatActivity(), HandlePathOzListener.MultipleUri {
 
     lateinit var btnChooseDoc: Button
 
-    lateinit var root: File
-    lateinit var assetManager: AssetManager
+
+
+    private lateinit var handlePathOz: HandlePathOz
 
     val TAG = "MainActivity"
     //val pdfBox = PDf.init(getApplicationContext());
@@ -42,6 +47,7 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
         btnChooseDoc = findViewById(R.id.btnChooseDocument)
+        handlePathOz = HandlePathOz(this, this)
 
         // inicializando libreria del pdf
         setup()
@@ -80,87 +86,32 @@ class MainActivity : AppCompatActivity() {
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         if (requestCode == 10 && resultCode == RESULT_OK) {
-            val uri = data?.data
+            val listUri = data.getListUri()
+            handlePathOz.getListRealPath(listUri)
+
+            Log.d(TAG, "lista de uri: $listUri")
+            /*val uri = data?.data
             val path = uri?.path
             val fileName = path?.substring(path.lastIndexOf("/") + 1)
-            Log.d("MainActivity", "onActivityResult ")
+            Log.d("MainActivity", "onActivityResult ")*/
 
-            if (uri != null) {
-                Log.d(TAG, "uri: $uri ")
-                Log.d(TAG, "path: $path ")
-                Log.d(TAG, "fileName: $fileName ")
+           // if (uri != null) {
+            //    Log.d(TAG, "uri: $uri ")
+            //    Log.d(TAG, "path: $path ")
+             //   Log.d(TAG, "fileName: $fileName ")
 
                 // obteniendo el filepath completo
 
-                val realPath = uri.getFilePath(applicationContext)
-
-                //obtenendo el path real nueva clase
-                //val truePath = FileUriUtils.getRealPath(applicationContext, uri)
-
-                Log.d(TAG, "realPath: $realPath ")
-                //Log.d("MainActivity", "nuevo real path: $truePath ")
-
-                val extension = ".pdf"
-
-                val file: File = File(realPath) // error
-
-                //val newFile = FileInputStream(file)
-
-                Log.d(TAG, "file creado: $file ")
-                //Log.d("MainActivity", "new file creado: $newFile ")
-
-                val myDocument = PDDocument.load(file)
-                val numPages = myDocument.numberOfPages
-                Log.d(TAG, "pages: $numPages ")
-
-                Toast.makeText(this, "Este documento $fileName tiene $numPages paginas", Toast.LENGTH_SHORT).show()
-                /* val file: File = File(path) // error
-
-                 val myDocument = PDDocument.load(file)
-                 val numPages = myDocument.numberOfPages*/
-
-                /*val file: File = File(uri.path)
-                println(file)
-                val myDocument = PDDocument.load(file)
-                val numPages = myDocument.numberOfPages*/
-
-                //Log.d("MainActivity", "pages: $numPages ")
-                /* try {
-                     val file: File = File(uri.path)
-                     println(file)
-                     val myDocument = PDDocument.load(file)
-                     val numPages = myDocument.numberOfPages
-                     Log.d("MainActivity", "pages: $numPages ")
-                 } catch (e: Exception) {
-                     println("No se pudo convertir ${e.message}")
-                 }*/
-
-
-
-
-                //get number of pages
-                // val myDocument = PDDocument.load(file)
-                //val numPages = myDocument.numberOfPages
-                //Log.d("MainActivity", "pages: $numPages ")
-
-                /*try {
-                    val file: File = uri.toFile()
-                    Log.d("MainActivity", "pages: ${file.toString()} ");
-                } catch (e: Exception) {
-                    println(e.message)
+               /* data?.data?.also { it ->
+                    //set uri to handle
+                    handlePathOz.getRealPath(it)
+                    //show Progress Loading
                 }*/
-
-
-
-
-
-            }
         }
     }
 
     private fun setup() {
         PDFBoxResourceLoader.init(applicationContext);
-
     }
 
     override fun onRequestPermissionsResult(
@@ -185,7 +136,7 @@ class MainActivity : AppCompatActivity() {
         intent.type = "application/pdf"
         intent.action = Intent.ACTION_OPEN_DOCUMENT
         // intent.action = Intent.ACTION_GET_CONTENT
-        //intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true)
+        intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true)
         //startActivityForResult(Intent.createChooser(intent, "Select Picture"), 10)
         //val pdfDocument = PDFBoxResourceLoader
         try {
@@ -201,4 +152,63 @@ class MainActivity : AppCompatActivity() {
             ).show()
         }
     }
+
+   /* override fun onRequestHandlePathOz(listPathOz: List<PathOz>, tr: Throwable?) {
+        //Hide Progress
+        //Update the recyclerview with the list
+        val list = listPathOz.map { uri -> Uri.parse(uri.path) }
+
+
+
+        //Handle any Exception (Optional)
+        tr?.let {
+            Toast.makeText(this, "${it.message}", Toast.LENGTH_SHORT).show()
+        }
+    }*/
+
+    override fun onRequestHandlePathOz(listPathOz: List<PathOz>, tr: Throwable?) {
+        Log.d(TAG, "recuperados")
+        val list = listPathOz.map { uri -> Uri.parse(uri.path) }
+        Log.d(TAG, "lista $list")
+
+        if (list != null && list.isNotEmpty()) {
+            navigate(list)
+        }
+    }
+
+    private fun navigate(list: List<Uri>) {
+        Log.d(TAG, "navegando")
+        Log.d(TAG, "lista: $list")
+        val uriArrayList = ArrayList<Uri>()
+        uriArrayList.addAll(list)
+
+        val intent = Intent(this, SecondActivity::class.java)
+        //val bundle = bundleOf("lista" to lista)
+        //intent.putExtras(bundle)
+        intent.putParcelableArrayListExtra("lista", uriArrayList)
+        startActivity(intent)
+    }
+
+    /*override fun onRequestHandlePathOz(pathOz: PathOz, tr: Throwable?) {
+        val list = listPathOz.map { uri -> Uri.parse(uri.path) }
+        Log.d(TAG, "lista $list")
+    }*/
+
+    // uyn item
+    /*override fun onRequestHandlePathOz(pathOz: PathOz, tr: Throwable?) {
+        Toast.makeText(this, "The real path is: ${pathOz.path} \n The type is: ", Toast.LENGTH_SHORT).show()
+
+        val file: File = File(pathOz.path) // error
+
+        val myDocument = PDDocument.load(file)
+        val numPages = myDocument.numberOfPages
+        Log.d(TAG, "pages: $numPages ")
+
+        Toast.makeText(this, "Este documento tiene $numPages paginas", Toast.LENGTH_SHORT).show()
+
+        //Handle any Exception (Optional)
+        tr?.let {
+            Toast.makeText(this, "${it.message}", Toast.LENGTH_SHORT).show()
+        }
+    }*/
 }
