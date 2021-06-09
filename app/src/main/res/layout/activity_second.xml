@@ -27,4 +27,13 @@
         app:layout_constraintEnd_toEndOf="@+id/rvFiles"
         app:layout_constraintStart_toStartOf="@+id/rvFiles"
         app:srcCompat="@drawable/ic_baseline_add_24" />
+
+    <Button
+        android:id="@+id/btnEnviar"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Enviar"
+        app:layout_constraintBottom_toTopOf="@+id/fabAdd"
+        app:layout_constraintEnd_toEndOf="@+id/fabAdd"
+        app:layout_constraintStart_toStartOf="@+id/fabAdd" />
 </androidx.constraintlayout.widget.ConstraintLayout>
