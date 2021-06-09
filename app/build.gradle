@@ -55,8 +55,12 @@ dependencies {
     implementation 'com.tom_roush:pdfbox-android:1.8.10.3'
 
      // handle path
-
     implementation 'com.github.onimur:handle-path-oz:1.0.7'
+
+    // coroutines
+
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.4.1'
+
 
 
 }

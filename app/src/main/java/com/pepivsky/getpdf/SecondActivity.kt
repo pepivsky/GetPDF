@@ -17,6 +17,9 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.pepivsky.getpdf.adapter.DocsAdapter
 import com.pepivsky.getpdf.service.ApiService
 import com.tom_roush.pdfbox.util.PDFBoxResourceLoader
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import okhttp3.MediaType
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
@@ -25,10 +28,7 @@ import okhttp3.RequestBody
 import okhttp3.RequestBody.Companion.asRequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.logging.HttpLoggingInterceptor
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
-import retrofit2.Retrofit
+import retrofit2.*
 import retrofit2.converter.gson.GsonConverterFactory
 import java.io.File
 
@@ -125,9 +125,9 @@ class SecondActivity : AppCompatActivity(), HandlePathOzListener.SingleUri{
     }
 
     private fun uploadFile(file: File) {
-        val token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE2MjMxOTk4MjMsImV4cCI6MTYyMzIwMzQyM30.5TfvURkaV8mXxSZ2jprIwubnivpF9XtlioolikAQExo"
+        val token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE2MjMyNTQ3MzUsImV4cCI6MTYyMzI1ODMzNX0.p8dDW3_ojxrIISKevRiiVO5nCpMVarOFFmwjhKRdT4I"
         //id y archivo
-        val requestId = RequestBody.create("multipart/form-data".toMediaTypeOrNull(), "253")
+        /*val requestId = RequestBody.create("multipart/form-data".toMediaTypeOrNull(), "253")
         var requestDoc: MultipartBody.Part? = null
 
 
@@ -135,7 +135,7 @@ class SecondActivity : AppCompatActivity(), HandlePathOzListener.SingleUri{
         val requestFile = RequestBody.create("multipart/form-data".toMediaTypeOrNull(), file)
 
         requestDoc = MultipartBody.Part.createFormData("file", file.name, requestFile)
-        Log.d("MainActivity", "$requestDoc")
+        Log.d("MainActivity", "$requestDoc")*/
 
 
         // bueno
@@ -153,24 +153,19 @@ class SecondActivity : AppCompatActivity(), HandlePathOzListener.SingleUri{
         val retrofit = getRetrofit()
         val call = retrofit.create(ApiService::class.java)
 
-        call.uploadFile(fileToUpload, token, id).enqueue(object : Callback<UploadResponse> {
-            override fun onResponse(
-                call: Call<UploadResponse>,
-                response: Response<UploadResponse>
-            ) {
-                if (response.isSuccessful) {
-                    Log.d(TAG, "Exito!")
-                    Log.d(TAG, "response${response.body()}")
-                    Toast.makeText(this@SecondActivity, "Subido ${response.body()?.message}", Toast.LENGTH_SHORT).show()
-                }
-            }
+        // implementado corutinas
+        CoroutineScope(Dispatchers.IO).launch {
+            val response = call.uploadFile(fileToUpload, token, id)
 
-            override fun onFailure(call: Call<UploadResponse>, t: Throwable) {
-                Log.d(TAG, "Algo salio mal :( ${call.toString()}")
-                Toast.makeText(this@SecondActivity, "Algo falla", Toast.LENGTH_SHORT).show()
+            if (response.isSuccessful) {
+                val mensaje = response.body()?.message
+                Log.i(TAG, "Exito! $mensaje")
+            } else {
+                Log.i(TAG, "Algo fallo! :( ")
             }
+        }
 
-        })
+
 
     }
 
