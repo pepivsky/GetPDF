@@ -133,7 +133,7 @@ class SecondActivity : AppCompatActivity(), HandlePathOzListener.SingleUri{
     }
 
     private fun uploadFile(file: File) {
-        val token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE2MjM0OTEyOTksImV4cCI6MTYyMzQ5NDg5OX0.uA6hQ8dCS8zKgJoJWYv4CGLZPNBpmnUwnhLyGNXp_tY"
+        val token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE2MjM2NzI3NzIsImV4cCI6MTYyMzY3NjM3Mn0.8lPG7jEdi8QLAn71F5ZYd3LS_AcizAPNhM--TRpzTUw"
         //id y archivo
         /*val requestId = RequestBody.create("multipart/form-data".toMediaTypeOrNull(), "253")
         var requestDoc: MultipartBody.Part? = null
@@ -157,6 +157,12 @@ class SecondActivity : AppCompatActivity(), HandlePathOzListener.SingleUri{
         val fileToUpload = MultipartBody.Part.createFormData("files", file.name, requestBody)
         val id = "253".toRequestBody("text/plain".toMediaTypeOrNull())
 
+        val notaryId = "6".toRequestBody("text/plain".toMediaTypeOrNull())
+        val serviceId = "1178".toRequestBody("text/plain".toMediaTypeOrNull())
+        val tempId = "74".toRequestBody("text/plain".toMediaTypeOrNull())
+        val tdd = "2".toRequestBody("text/plain".toMediaTypeOrNull())
+
+
 
         val retrofit = getRetrofit()
         val call = retrofit.create(ApiService::class.java)
@@ -165,7 +171,7 @@ class SecondActivity : AppCompatActivity(), HandlePathOzListener.SingleUri{
         CoroutineScope(Dispatchers.IO).launch {
 
             try {
-                val response = call.uploadFile(fileToUpload, token, id)
+                val response = call.uploadFile(fileToUpload, token, id, notaryId, serviceId, tempId, tdd)
 
                 if (response.isSuccessful) {
                     val mensaje = response.body()?.message

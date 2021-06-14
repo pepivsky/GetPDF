@@ -16,10 +16,12 @@ interface ApiService {
     suspend fun uploadFile(
             @Part file: MultipartBody.Part,
             @Header("Authorization") token: String,
-            @Part("id") id: RequestBody
-
-
-    ): Response<UploadResponse>
+            @Part("id") id: RequestBody,
+            @Part("notary_id") notaryId: RequestBody,
+            @Part("service_id") serviceId: RequestBody,
+            @Part("temp_id") tempId: RequestBody,
+            @Part("tdd") tdd: RequestBody,
+            ): Response<UploadResponse>
 
 
 }
