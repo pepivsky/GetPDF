@@ -39,6 +39,7 @@ class DocsAdapter(private val docs: MutableList<File>, private val context: Cont
             tvName.text = doc.name
             val textNumPages = "Paginas: $numPages"
             tvNumPages.text = textNumPages
+            myDocument.close() // importante cerrar el documento
 
 
         }

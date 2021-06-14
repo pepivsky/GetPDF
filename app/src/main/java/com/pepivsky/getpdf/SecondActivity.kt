@@ -31,6 +31,8 @@ import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.*
 import retrofit2.converter.gson.GsonConverterFactory
 import java.io.File
+import java.lang.Exception
+import java.util.concurrent.TimeUnit
 
 
 class SecondActivity : AppCompatActivity(), HandlePathOzListener.SingleUri{
@@ -44,7 +46,12 @@ class SecondActivity : AppCompatActivity(), HandlePathOzListener.SingleUri{
             val logger = HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.BODY)
 
             //HTTP client
-            val client = OkHttpClient.Builder().addInterceptor(logger)
+            val client = OkHttpClient.Builder()
+                    .addInterceptor(logger) //inteceptor para ver los errores del la solicitud
+                    // evitar el socket time out exception
+                    .connectTimeout(1, TimeUnit.MINUTES)
+                    .writeTimeout(1, TimeUnit.MINUTES) // write timeout
+                    .readTimeout(1, TimeUnit.MINUTES) // read timeout
 
             //objeto builder
             val builder = Retrofit.Builder().baseUrl(baseURL)
@@ -60,6 +67,7 @@ class SecondActivity : AppCompatActivity(), HandlePathOzListener.SingleUri{
     }
 
     val TAG = "SecondActivity"
+    val URI_LIST_KEY = "lista"
 
     lateinit var rvDocs: RecyclerView
     lateinit var adapter: DocsAdapter
@@ -86,7 +94,7 @@ class SecondActivity : AppCompatActivity(), HandlePathOzListener.SingleUri{
         Log.d(TAG, "lista recibida: $lista")
 
 
-
+        // tranfroma la lista de uris recibida en files
         lista?.forEach {
             Log.d(TAG, "item: ${it.path}")
             val file = File(it.path)
@@ -125,7 +133,7 @@ class SecondActivity : AppCompatActivity(), HandlePathOzListener.SingleUri{
     }
 
     private fun uploadFile(file: File) {
-        val token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE2MjMyNTQ3MzUsImV4cCI6MTYyMzI1ODMzNX0.p8dDW3_ojxrIISKevRiiVO5nCpMVarOFFmwjhKRdT4I"
+        val token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE2MjM0OTEyOTksImV4cCI6MTYyMzQ5NDg5OX0.uA6hQ8dCS8zKgJoJWYv4CGLZPNBpmnUwnhLyGNXp_tY"
         //id y archivo
         /*val requestId = RequestBody.create("multipart/form-data".toMediaTypeOrNull(), "253")
         var requestDoc: MultipartBody.Part? = null
@@ -155,14 +163,23 @@ class SecondActivity : AppCompatActivity(), HandlePathOzListener.SingleUri{
 
         // implementado corutinas
         CoroutineScope(Dispatchers.IO).launch {
-            val response = call.uploadFile(fileToUpload, token, id)
 
-            if (response.isSuccessful) {
-                val mensaje = response.body()?.message
-                Log.i(TAG, "Exito! $mensaje")
-            } else {
-                Log.i(TAG, "Algo fallo! :( ")
+            try {
+                val response = call.uploadFile(fileToUpload, token, id)
+
+                if (response.isSuccessful) {
+                    val mensaje = response.body()?.message
+                    Log.i(TAG, "OK! $mensaje")
+                    if (mensaje == "200") {
+                        Log.i(TAG, "subido! $mensaje")
+                    }
+                } else {
+                    Log.i(TAG, "Algo fallo! :( ")
+                }
+            }catch (e: Exception) {
+                Log.i(TAG, "Excepcion! e:${e.message} ")
             }
+
         }
 
 

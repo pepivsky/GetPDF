@@ -47,7 +47,7 @@ class MainActivity : AppCompatActivity(), HandlePathOzListener.MultipleUri {
         setContentView(R.layout.activity_main)
 
         btnChooseDoc = findViewById(R.id.btnChooseDocument)
-        handlePathOz = HandlePathOz(this, this)
+
 
         // inicializando libreria del pdf
         setup()
@@ -111,7 +111,8 @@ class MainActivity : AppCompatActivity(), HandlePathOzListener.MultipleUri {
     }
 
     private fun setup() {
-        PDFBoxResourceLoader.init(applicationContext);
+        PDFBoxResourceLoader.init(applicationContext)
+        handlePathOz = HandlePathOz(this, this)
     }
 
     override fun onRequestPermissionsResult(
