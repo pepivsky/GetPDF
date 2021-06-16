@@ -1,11 +1,15 @@
 package com.pepivsky.getpdf
 
+import android.app.ProgressDialog
 import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.net.Uri
+import android.opengl.Visibility
 import android.os.Bundle
 import android.util.Log
+import android.view.View
 import android.widget.Button
+import android.widget.ProgressBar
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -14,12 +18,14 @@ import br.com.onimur.handlepathoz.HandlePathOz
 import br.com.onimur.handlepathoz.HandlePathOzListener
 import br.com.onimur.handlepathoz.model.PathOz
 import com.google.android.material.floatingactionbutton.FloatingActionButton
+import com.google.android.material.snackbar.Snackbar
 import com.pepivsky.getpdf.adapter.DocsAdapter
 import com.pepivsky.getpdf.service.ApiService
 import com.tom_roush.pdfbox.util.PDFBoxResourceLoader
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import okhttp3.MediaType
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
@@ -69,6 +75,9 @@ class SecondActivity : AppCompatActivity(), HandlePathOzListener.SingleUri{
     val TAG = "SecondActivity"
     val URI_LIST_KEY = "lista"
 
+    // progress dialog
+    //private lateinit var pDialog: ProgressDialog
+
     lateinit var rvDocs: RecyclerView
     lateinit var adapter: DocsAdapter
 
@@ -76,6 +85,8 @@ class SecondActivity : AppCompatActivity(), HandlePathOzListener.SingleUri{
 
     lateinit var btnAdd: FloatingActionButton
     lateinit var btnEnviar: Button
+    lateinit var progressBar: ProgressBar
+    var counter = 0
 
    // private lateinit var handlePathOz: HandlePathOz
     val listaFiles = mutableListOf<File>()
@@ -112,6 +123,7 @@ class SecondActivity : AppCompatActivity(), HandlePathOzListener.SingleUri{
 
 
 
+
     }
 
     private fun initRecycler() {
@@ -124,37 +136,44 @@ class SecondActivity : AppCompatActivity(), HandlePathOzListener.SingleUri{
         PDFBoxResourceLoader.init(applicationContext);
         btnAdd = findViewById(R.id.fabAdd)
         btnEnviar = findViewById(R.id.btnEnviar)
+        progressBar = findViewById(R.id.myProgress)
         btnEnviar.setOnClickListener {
-            uploadFile(listaFiles.first())
+            //uploadFile(listaFiles.first())
+
+            for (i in listaFiles) {
+                Log.d(TAG, "file i$i")
+                uploadFile(i)
+            }
+            Log.d(TAG, "Todos los archivos subidos! :)")
+
+
         }
         btnAdd.setOnClickListener {
             launchFileChooser()
         }
     }
 
+    private fun showProgress() {
+        progressBar.visibility = View.VISIBLE
+    }
+
+    private fun hideProgress() {
+        if (counter == listaFiles.size) {
+            progressBar.visibility = View.GONE
+        }
+        return
+
+    }
+
+
+
     private fun uploadFile(file: File) {
-        val token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE2MjM2NzI3NzIsImV4cCI6MTYyMzY3NjM3Mn0.8lPG7jEdi8QLAn71F5ZYd3LS_AcizAPNhM--TRpzTUw"
-        //id y archivo
-        /*val requestId = RequestBody.create("multipart/form-data".toMediaTypeOrNull(), "253")
-        var requestDoc: MultipartBody.Part? = null
+        val token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE2MjM4ODA2OTAsImV4cCI6MTYyMzg4NDI5MH0.kVvsHWE27JSgRfP8reQBohvCCr_M5I7dew27XyA-XEI"
 
-
-
-        val requestFile = RequestBody.create("multipart/form-data".toMediaTypeOrNull(), file)
-
-        requestDoc = MultipartBody.Part.createFormData("file", file.name, requestFile)
-        Log.d("MainActivity", "$requestDoc")*/
-
-
-        // bueno
-
-       /* val requestBody =  RequestBody.create("application/pdf".toMediaTypeOrNull(), file)
-        val fileToUpload = MultipartBody.Part.createFormData("files", file.name, requestBody)
-        val id = RequestBody.create("text/plain".toMediaTypeOrNull(), "253")*/
-        //val uri = Uri.fromFile(file)
 
         val requestBody = file.asRequestBody("application/pdf".toMediaTypeOrNull())
         val fileToUpload = MultipartBody.Part.createFormData("files", file.name, requestBody)
+
         val id = "253".toRequestBody("text/plain".toMediaTypeOrNull())
 
         val notaryId = "6".toRequestBody("text/plain".toMediaTypeOrNull())
@@ -166,18 +185,31 @@ class SecondActivity : AppCompatActivity(), HandlePathOzListener.SingleUri{
 
         val retrofit = getRetrofit()
         val call = retrofit.create(ApiService::class.java)
+        showProgress()
 
         // implementado corutinas
         CoroutineScope(Dispatchers.IO).launch {
+
 
             try {
                 val response = call.uploadFile(fileToUpload, token, id, notaryId, serviceId, tempId, tdd)
 
                 if (response.isSuccessful) {
-                    val mensaje = response.body()?.message
-                    Log.i(TAG, "OK! $mensaje")
-                    if (mensaje == "200") {
-                        Log.i(TAG, "subido! $mensaje")
+                    val uploadResponse = response.body()
+                    val status = uploadResponse?.status
+                    Log.i(TAG, "OK! $status")
+                    if (status == "200") {
+                        Log.i(TAG, "subido! ")
+                        //Toast.makeText(this@SecondActivity, "Subido exitosamente", Toast.LENGTH_LONG).show()
+                        Snackbar.make(btnEnviar, "Suubido con exito!", Snackbar.LENGTH_LONG).show()
+
+                        // incrementar contador
+                        counter++
+                        // ocultar el progress si ya se subieron los archivos
+                        withContext(Dispatchers.Main){
+                            hideProgress()
+                        }
+
                     }
                 } else {
                     Log.i(TAG, "Algo fallo! :( ")

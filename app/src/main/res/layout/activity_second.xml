@@ -36,4 +36,15 @@
         app:layout_constraintBottom_toTopOf="@+id/fabAdd"
         app:layout_constraintEnd_toEndOf="@+id/fabAdd"
         app:layout_constraintStart_toStartOf="@+id/fabAdd" />
+
+    <ProgressBar
+        android:id="@+id/myProgress"
+        android:layout_width="120dp"
+        android:layout_height="120dp"
+        android:visibility="gone"
+        android:indeterminate="true"
+        app:layout_constraintBottom_toBottomOf="@+id/rvFiles"
+        app:layout_constraintEnd_toEndOf="@+id/rvFiles"
+        app:layout_constraintStart_toStartOf="@+id/rvFiles"
+        app:layout_constraintTop_toTopOf="@+id/rvFiles" />
 </androidx.constraintlayout.widget.ConstraintLayout>
